@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earthquake Prediction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background: #dc3545;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #c82333;
+        }
+        .result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 15px;
+            color: #333;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Earthquake Prediction</h2>
+        <label>Latitude:</label>
+        <input type="number" id="latitude" placeholder="Enter latitude" step="any">
+        <label>Longitude:</label>
+        <input type="number" id="longitude" placeholder="Enter longitude" step="any">
+        <label>Select Date:</label>
+        <input type="date" id="date">
+        <button onclick="predictEarthquake()">Predict</button>
+        <p class="result" id="result"></p>
+        <p class="error" id="error"></p>
+    </div>
+    <script>
+        async function predictEarthquake() {
+            const latitude = document.getElementById("latitude").value;
+            const longitude = document.getElementById("longitude").value;
+            const date = document.getElementById("date").value;
+            const resultElement = document.getElementById("result");
+            const errorElement = document.getElementById("error");
+            resultElement.innerHTML = "";
+            errorElement.innerHTML = "";
+            if (!latitude || !longitude || !date) {
+                errorElement.innerHTML = "Please enter all fields.";
+                return;
+            }
+            const [year, month, day] = date.split("-").map(Number);
+            try {
+                const response = await fetch("/predict_earthquake", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ latitude, longitude, year, month, day })
+                });
+                const data = await response.json();
+                if (data.error) {
+                    errorElement.innerHTML = "Error: " + data.error;
+                } else {
+                    resultElement.innerHTML = `
+                        <p>Predicted Magnitude: <strong>${data.predicted_magnitude}</strong></p>
+                        <p>Risk Level: <strong>${data.risk_level}</strong></p>
+                    `;
+                }
+            } catch (error) {
+                errorElement.innerHTML = "Failed to fetch prediction.";
+            }
+        }
+    </script>
+</body>
+</html>
